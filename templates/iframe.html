@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <p>People who have visited more than two tag locations have an area painted on this map
+            that covers the outer bounds of their "range." Use the menu at right to select
+            one or more people.</p>
+        </div>
+<div class="row">
+    <div class="col-md-9">
+        {{ iframe|safe }}
+    </div>
+<div class = "col-md-3">
+    <em>Control- or shift- select people you want to see on the map.</em>
+    <em> Use Control-A to select everyone</em>
+    <p></p>
+    <form method="POST">
+            {{ peopleform.hidden_tag() }}
+            {{ peopleform.options.label }}<br>
+            {{ peopleform.options(size=18, multiple=True) }}<br>
+            {{ peopleform.peoplesubmit() }}
+        </form>
+</div>
+</div>
+
+        <hr>
+
+    <div id="table"></div>
+
+        <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+        <script>
+            new gridjs.Grid({
+                columns: [
+                    {id: 'person', name: 'Name'},
+                    {id: 'cluster', name: 'Cluster'},
+                    {id: 'area', name: 'Area', sort: true},
+                    {id: 'location_density', name: 'Location Density',
+                        sort: {
+                          compare: (a, b) => {
+                              if (parseFloat(a) > parseFloat(b)) {
+                                  return 1;
+                              } else if (parseFloat(b) > parseFloat(a)) {
+                                  return -1;
+                              } else {
+                                  return 0;
+                              }
+                          },
+                      }
+                    },
+                    {id: 'location_count', name: 'Location Count',
+                        sort: {
+                          compare: (a, b) => {
+                              if (parseFloat(a) > parseFloat(b)) {
+                                  return 1;
+                              } else if (parseFloat(b) > parseFloat(a)) {
+                                  return -1;
+                              } else {
+                                  return 0;
+                              }
+                          },
+                      },
+                    }
+                ],
+                data: [
+                    {% for person in peopletable %}
+                        {
+                            person: '{{ person.person }}',
+                            cluster: '{{ person.cluster }}',
+                            area: '{{ person.convex_hull_area }}',
+                            location_density: '{{ person.location_density }}',
+                            location_count: '{{ person.location_count }}'
+                        },
+                    {% endfor %}
+                ],
+                search: {
+                    selector: (cell, rowIndex, cellIndex) => [0, 1, 4].includes(cellIndex) ? cell : null,
+                },
+                sort: true,
+                pagination: true,
+            }).render(document.getElementById('table'));
+        </script>
+
+{% endblock %}
