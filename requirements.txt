@@ -13,3 +13,6 @@ plotly~=5.18.0
 sqlalchemy~=2.0.23
 networkx~=3.2.1
 bokeh~=3.3.2
+gunicorn~=21.2.0
+
+
