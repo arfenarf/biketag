@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.3.2.min.js"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.3.2.min.js"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <header>{{ script | safe }}</header>
+    <div class="row">
+        <div class="shadow col-md-6">
+            <h1>A Network View</h1>
+            <div><p>People are colored by their cluster; sized by the number of tags they have been part of;
+                and are pulled together if they have more tags in common. Pan and zoom to explore.</p></div>
+            <div>{{ div|safe }}</div>
+        </div>
+        <div class="shadow col-md-6">
+            <h1>Histograms</h1>
+            <div><p>This plot shows how many times a person traveled some distance to get a tag.</p></div>
+            <div id="distogram"></div>
+            <script type="text/javascript">
+                var plots = {{distograms | safe}};
+                Plotly.newPlot('distogram', plots.data, plots.layout);
+            </script>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="shadow col-md-12">
+            <h1>Counts by Year/Month</h1>
+            <div><p>This plot shows how many tags were created in each month of each year.</p></div>
+            <div id="datemap"></div>
+            <script type="text/javascript">
+                var plots = {{datemap | safe}};
+                Plotly.newPlot('datemap', plots.data, plots.layout);
+            </script>
+        </div>
+    </div>
+
+
+    <hr>
+
+
+{% endblock %}
