@@ -19,7 +19,7 @@
             <div><p>This plot shows how many times a person traveled some distance to get a tag.</p></div>
             <div id="distogram"></div>
             <script type="text/javascript">
-                var plots = {{distograms | safe}};
+                var plots ={{distograms | safe}};
                 Plotly.newPlot('distogram', plots.data, plots.layout);
             </script>
         </div>

@@ -1,4 +1,3 @@
-from bokeh.models import Range1d, Circle, MultiLine
 import json
 
 import networkx as nx
@@ -90,10 +89,6 @@ def create_bokeh_network(person_df, tag_df):
     # Create a network graph object with spring layout
     # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html
     network_graph = from_networkx(G, nx.spring_layout, scale=10, center=(0, 0))
-
-    # Set node sizes and colors according to node degree (color as spectrum of color palette)
-    minimum_value_color = min(network_graph.node_renderer.data_source.data[color_by_this_attribute])
-    maximum_value_color = max(network_graph.node_renderer.data_source.data[color_by_this_attribute])
 
     # Set node sizes and colors
     network_graph.node_renderer.glyph = Circle(size=size_by_this_attribute, fill_color=color_by_this_attribute)

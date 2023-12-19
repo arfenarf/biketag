@@ -20,7 +20,7 @@ def load_data(filepath="data/biketag.tsv", sep="\t"):
     return gdf
 
 
-def create_person_df(gdf, sep=","):
+def create_person_df(gdf):
     person_df = pd.concat([gdf[["placed_by", "geometry"]].rename(columns={"placed_by": "person"}),
                            gdf[["found_by", "geometry"]].rename(columns={"found_by": "person"}), ])
     person_df["location_count"] = 1

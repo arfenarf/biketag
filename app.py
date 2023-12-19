@@ -91,8 +91,6 @@ with app.app_context():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    sort = request.args.get("sort", "person_id")
-    reverse = request.args.get("direction", "asc") == "desc"
     m, map_df, person_df, gdf = load_and_build_map("data/biketag.tsv")
 
     peopleform = PersonForm()
@@ -103,7 +101,7 @@ def index():
 
     if peopleform.validate_on_submit() and peopleform.peoplesubmit.data:
 
-        if peopleform.options.data == []:
+        if not peopleform.options.data:
             peopleform.options.data = [person.person for person in people if person.location_count > 2]
         m = build_map(map_df, person_df, gdf, peopleform=peopleform)
 
