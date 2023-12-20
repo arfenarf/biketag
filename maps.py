@@ -137,7 +137,7 @@ def build_map(map_df, person_df, gdf, peopleform=None):
         z.add_to(m)
 
     folium.LayerControl().add_to(m)
-    m.save("assets/biketag.html")
+    # m.save("assets/biketag.html")
     return m
 
 
