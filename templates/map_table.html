@@ -23,6 +23,7 @@
     </div>
     <div class="row"></div>
     <div class="container">
+        <div class="row"><p></p></div>
         <div class="row justify-content-end">
             <div class="col-md-2">
 
@@ -39,89 +40,71 @@
                     <li>The larger circular markers indicate the centroid for each person's range and are also colored
                         by
                         cluster.
-                    <li> Use the menu at right to select
-                        one or more people. You can turn layers on and off in the map.
-                    <li> Below the map there is a sortable, filterable table of all our players.
+                    <li> You can turn layers on and off in the map.
+                    <li> Below the map there is a sortable, filterable table of all our players. You can select
+                        individuals
+                        from the table and click the "Visualize Selected Rows" button to see their ranges on the map.
+                    <li> Press "Visualize Selected Rows" with no-one selected to see all the ranges again.
+                    <li> You can also click on the "Plots" link in the navbar to see some plots of the data.
                 </ul>
             </div>
         </div>
-    <hr>
+        <hr>
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-12">
                 {{ iframe|safe }}
             </div>
-            <div class="col-md-3">
-                <em>Control- or shift- select people you want to see on the map.</em>
-                <em> Use Control-A to select everyone</em>
-                <p></p>
-                <form method="POST">
-                    {{ peopleform.hidden_tag() }}
+        </div>
+        <div class="row">
+            <hr>
+            <h3>People Table</h3>
+            <div id="table"></div>
 
-                    {{ peopleform.options.label }}<br>
-                    {{ peopleform.options(size=18, multiple=True) }}<br>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css">
+            <script type="text/javascript" charset="utf8"
+                    src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
 
-                    {{ peopleform.peoplesubmit() }}
-                </form>
+            <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+
+            <form method="POST" action="/">
+                <table id="myTable" class="display">
+                    <thead>
+                    <tr>
+                        <!-- Your table headings here -->
+                        <th>Select</th>
+                        <th>Name</th>
+                        <th>Cluster</th>
+                        <th>Area (sq.mi.)</th>
+                        <th>Location Density (tags/sq.mi.)</th>
+                        <th>Location Count</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- assuming 'data' is passed to render_template -->
+                    {% for person in peopletable %}
+                        <tr>
+                            <td><input type="checkbox" name="row" value="{{ person.person_id }}"/></td>
+                            <td>{{ person.person }}</td>
+                            <td>{{ person.cluster }}</td>
+                            <td>{{ person.convex_hull_area }}</td>
+                            <td>{{ person.location_density }}</td>
+                            <td>{{ person.location_count }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <input type="submit" value="Visualize Selected Rows">
+            </form>
+            <script>$(document).ready(function () {
+                $('#myTable').DataTable();
+            });</script>
+        </div>
+        <div class="row"><p></p></div>
+        <div class="row justify-content-center bg-dark">
+            <div class="col-md-6">
+                <h1 class="fw-light mt-4 text-white">Bike Tag at Ann Arbor Velo Club</h1>
             </div>
         </div>
-
-        <hr>
-        <h3>People Table</h3>
-        <div id="table"></div>
-
-        <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
-        <script>
-            new gridjs.Grid({
-                columns: [
-                    {id: 'person', name: 'Name'},
-                    {id: 'cluster', name: 'Cluster'},
-                    {id: 'area', name: 'Area (sq.mi.)', sort: true},
-                    {
-                        id: 'location_density', name: 'Location Density (tags/sq.mi.)',
-                        sort: {
-                            compare: (a, b) => {
-                                if (parseFloat(a) > parseFloat(b)) {
-                                    return 1;
-                                } else if (parseFloat(b) > parseFloat(a)) {
-                                    return -1;
-                                } else {
-                                    return 0;
-                                }
-                            },
-                        }
-                    },
-                    {
-                        id: 'location_count', name: 'Location Count',
-                        sort: {
-                            compare: (a, b) => {
-                                if (parseFloat(a) > parseFloat(b)) {
-                                    return 1;
-                                } else if (parseFloat(b) > parseFloat(a)) {
-                                    return -1;
-                                } else {
-                                    return 0;
-                                }
-                            },
-                        },
-                    }
-                ],
-                data: [
-                    {% for person in peopletable %}
-                        {
-                            person: '{{ person.person }}',
-                            cluster: '{{ person.cluster }}',
-                            area: '{{ person.convex_hull_area }}',
-                            location_density: '{{ person.location_density }}',
-                            location_count: '{{ person.location_count }}'
-                        },
-                    {% endfor %}
-                ],
-                search: {
-                    selector: (cell, rowIndex, cellIndex) => [0, 1, 4].includes(cellIndex) ? cell : null,
-                },
-                sort: true,
-                pagination: true,
-            }).render(document.getElementById('table'));
-        </script>
-
+    </div>
 {% endblock %}
