@@ -99,30 +99,26 @@ with app.app_context():
         db.session.add(t)
     db.session.commit()
 
-    print("this is just for debugging")
-
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     m, map_df, person_df, gdf = load_and_build_map("data/biketag.tsv")
-
-    peopleform = PersonForm()
+    clusters = len(person_df.cluster.unique())
     people = Person.query
-    selector_options = [
-        (person.person, person.person) for person in people if person.location_count > 2
-    ]
-    selector_options.sort()
-    peopleform.options.choices = selector_options
 
-    if peopleform.validate_on_submit() and peopleform.peoplesubmit.data:
-        if not peopleform.options.data:
-            peopleform.options.data = [
-                person.person for person in people if person.location_count > 2
+    if request.method == "POST":
+        if request.form.get("row"):
+            selected_indices = [int(x) for x in request.form.getlist("row")]
+            selected_person_df = person_df.loc[
+                person_df.person_id.isin(selected_indices)
             ]
-        m = build_map(map_df, person_df, gdf, peopleform=peopleform)
+            selected_map_df = map_df.loc[map_df.person_id.isin(selected_indices)]
+            m = build_map(selected_map_df, selected_person_df, gdf, clusters)
+        else:
+            m = build_map(map_df, person_df, gdf, clusters)
 
     # set the iframe width and height
-    m.get_root().width = "800px"
+    m.get_root().width = "1000"
     m.get_root().height = "600px"
     iframe = m.get_root()._repr_html_()
 
@@ -130,7 +126,6 @@ def index():
         "map_table.html",
         title="Bike Tag Map!",
         iframe=iframe,
-        peopleform=peopleform,
         peopletable=people,
     )
 
