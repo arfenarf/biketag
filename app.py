@@ -71,48 +71,63 @@ with app.app_context():
     m, map_df, person_df, gdf = load_and_build_map("data/biketag.tsv")
 
     for person, row in person_df.iterrows():
-        p = Person(person_id=row.person_id, person=person, cluster=row.cluster_label,
-                   convex_hull_area=round(row.convex_hull_area, 2), location_density=round(row.location_density, 4),
-                   location_count=row.location_count, )
+        p = Person(
+            person_id=row.person_id,
+            person=person,
+            cluster=row.cluster_label,
+            convex_hull_area=round(row.convex_hull_area, 2),
+            location_density=round(row.location_density, 4),
+            location_count=row.location_count,
+        )
         db.session.add(p)
 
     db.session.commit()
 
     for tag, row in gdf.iterrows():
-        t = Tag(tag_id=row.tag_id, name=row['name'], placed_by=row.placed_by, found_by=row.found_by,
-                placed_by_id=row.placed_by_id, found_by_id=row.found_by_id,
-                placed_at_datetime=datetime.fromisoformat(row.placed_at_datetime),
-                found_at_datetime=datetime.fromisoformat(row.found_at_datetime),
-                drive_distance_mi=row.drive_distance_mi, crow_distance_mi=row.crow_dist_mi)
+        t = Tag(
+            tag_id=row.tag_id,
+            name=row["name"],
+            placed_by=row.placed_by,
+            found_by=row.found_by,
+            placed_by_id=row.placed_by_id,
+            found_by_id=row.found_by_id,
+            placed_at_datetime=datetime.fromisoformat(row.placed_at_datetime),
+            found_at_datetime=datetime.fromisoformat(row.found_at_datetime),
+            drive_distance_mi=row.drive_distance_mi,
+            crow_distance_mi=row.crow_dist_mi,
+        )
         db.session.add(t)
     db.session.commit()
-
-    print("this is just for debugging")
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     m, map_df, person_df, gdf = load_and_build_map("data/biketag.tsv")
-
-    peopleform = PersonForm()
+    clusters = len(person_df.cluster.unique())
     people = Person.query
-    selector_options = [(person.person, person.person) for person in people if person.location_count > 2]
-    selector_options.sort()
-    peopleform.options.choices = selector_options
 
-    if peopleform.validate_on_submit() and peopleform.peoplesubmit.data:
-
-        if not peopleform.options.data:
-            peopleform.options.data = [person.person for person in people if person.location_count > 2]
-        m = build_map(map_df, person_df, gdf, peopleform=peopleform)
+    if request.method == "POST":
+        if request.form.get("row"):
+            selected_indices = [int(x) for x in request.form.getlist("row")]
+            selected_person_df = person_df.loc[
+                person_df.person_id.isin(selected_indices)
+            ]
+            selected_map_df = map_df.loc[map_df.person_id.isin(selected_indices)]
+            m = build_map(selected_map_df, selected_person_df, gdf, clusters)
+        else:
+            m = build_map(map_df, person_df, gdf, clusters)
 
     # set the iframe width and height
-    m.get_root().width = "800px"
+    m.get_root().width = "1000"
     m.get_root().height = "600px"
     iframe = m.get_root()._repr_html_()
 
-    return render_template("map_table.html", title="Bike Tag Map!", iframe=iframe, peopleform=peopleform,
-                           peopletable=people)
+    return render_template(
+        "map_table.html",
+        title="Bike Tag Map!",
+        iframe=iframe,
+        peopletable=people,
+    )
 
 
 @app.route("/plots", methods=["GET"])
@@ -131,8 +146,14 @@ def show_plots():
     # frequency by month-year
     datemap = create_plotly_heatmap(tag_df)
 
-    return render_template("plots.html", title="Bike Tag Plots", script=network_script, div=network_div,
-                           distograms=distograms, datemap=datemap, )
+    return render_template(
+        "plots.html",
+        title="Bike Tag Plots",
+        script=network_script,
+        div=network_div,
+        distograms=distograms,
+        datemap=datemap,
+    )
 
 
 if __name__ == "__main__":
